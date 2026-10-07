@@ -35,6 +35,7 @@ import {
   registerHermesDataRpc,
   registerUnavailableHermesDataRpc,
 } from "./hermes-data.js";
+import { withDefaultBindings } from "./builtin-bindings.js";
 import { createInternalEndpoint } from "./internal.js";
 import { createMcpEndpoint } from "./mcp.js";
 import { createOperatorEndpoint } from "./operator.js";
@@ -174,8 +175,12 @@ try {
 // Same registration the MCP server uses: base methods + shipped extensions, with the
 // node-side widget-bundle installer + the (possibly Hermes-wrapped) binding resolver, plus
 // the connector workspace's partial-grant hash resolver when connectors are wired.
+// The store is wrapped so workspace READS (workspace.get / view rendering) attach
+// default rpc bindings to unbound data-source builtins (usage/sessions/cron/
+// instances/agent-status) — view-only, never persisted, so those widgets show real
+// Hermes data in the desktop polling fallback too instead of empty states.
 registerBoardstateRpc(host, {
-  store,
+  store: withDefaultBindings(store),
   dataRead: { stateDir: store.stateDir },
   ...nodeDeps,
   resolveBinding,

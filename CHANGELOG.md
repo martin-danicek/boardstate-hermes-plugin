@@ -3,6 +3,34 @@
 All notable changes to `boardstate-hermes-plugin` are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## 1.5.3
+
+Data builtins no longer render empty in the polling fallback — unbound
+`builtin:usage` / `sessions` / `cron` / `instances` / `agent-status` widgets
+self-bind at read time.
+
+### Fixed
+
+- **plugin.yaml still declared 1.5.1 at tag v1.5.2** — `hermes plugins list`
+  reported 1.5.1 while CHANGELOG/package said 1.5.2. Bumped to 1.5.3 with this
+  release so the plugin manifest is authoritative again.
+- Template-built boards (and any doc authored without explicit `bindings`) left
+  the data-source builtins empty: the "self-bind on the server" promised in
+  `templates.ts` existed only as the RPC handlers `registerHermesDataRpc`
+  registers — nothing ever attached a binding to the widget, so the view's
+  `ensureBindings` skipped it (`primaryBinding() === null` ⇒ no fetch ⇒ empty
+  state). Most visible in the Desktop polling fallback (live WS unavailable):
+  `builtin:usage` showed $0.00/0 and `builtin:cron` "No scheduled jobs." while
+  `usage.status` / `cron.list` answered fine over REST.
+- The sidecar now wraps the store for `registerBoardstateRpc`
+  (`withDefaultBindings`): `dashboard.workspace.get` (and every other read)
+  attaches a default `source:"rpc"` binding (`usage.status`, `sessions.list`,
+  `cron.list`, `system-presence`) to unbound data-source widgets — view-only,
+  never persisted (mutations write through to the real store; the raw
+  workspace.json stays free of injected bindings). Widgets with an explicit
+  binding keep it; the browser resolves the defaults exactly like hand-authored
+  ones, in both live and polling mode.
+
 ## 1.5.2
 
 Gated-mode data path: live Hermes data in OAuth-gated dashboards, and a Desktop page
