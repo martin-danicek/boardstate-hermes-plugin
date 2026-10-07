@@ -65,6 +65,9 @@ jobs:
       - name: Hermes data resolver wire-contract (rpc bindings → REST fixture)
         run: node test/hermes-data.mjs
 
+      - name: Builtin default bindings (unbound data builtins self-bind at read time)
+        run: node test/builtin-default-bindings.mjs
+
       - name: Chat event translator (Hermes stream → §14 AgentStreamEvent)
         run: node test/chat-translate.mjs
 
